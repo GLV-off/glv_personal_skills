@@ -6,7 +6,7 @@
 # History: 2026-02-14: Created
 #
 # Usage: bash scripts/pkg-add-unit.sh <pkg.lpk|pkg.ctpkg> <unit.pas> [--check]
-# Exit:  0 = добавлено/проверено; 2 = ошибка/отказ; 3 = юнит уже в пакете.
+# Exit:  0 = добавлено/проверено; 2 = ошибка/отказ; 3 = юнит уже в пакете; 64 = аргументы.
 # ВАЖНО: автоген-юнит пакета (*.pas рядом с .lpk) не правится — см. WARN.
 set -uo pipefail
 
@@ -34,7 +34,7 @@ done
 
 unit_name="$(awk 'tolower($1)=="unit"{gsub(/;/,"",$2); print $2; exit}' "$UF")"
 [ -n "$unit_name" ] || { echo "RESULT|error|no-unit-name|$UF"; exit 2; }
-if grep -qi "<UnitName Value=\"$unit_name\"/>" "$PKG"; then
+if grep -Fqi "<UnitName Value=\"$unit_name\"/>" "$PKG"; then
   echo "RESULT|skip|already-present|unit=$unit_name"; exit 3
 fi
 

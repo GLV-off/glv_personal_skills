@@ -17,7 +17,10 @@
 
 set -u
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+# Корень — репозиторий, в котором запущен скрипт (скилл может лежать и в
+# <repo>/.pi/skills, и в ~/.pi/agent/skills).
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null | tr -d '\r')"
+[ -z "$ROOT" ] && ROOT="$(pwd)"
 BACKLOG="$ROOT/doc/backlog_ru.md"
 WRITE=0
 REPORT=""

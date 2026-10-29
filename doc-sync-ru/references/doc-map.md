@@ -38,14 +38,14 @@
 
 | Тип | Утверждение | Факт |
 |---|---|---|
-| `count` | `AGENTS.md:54`: «39 отслеживаемых файлов» | `git ls-files \| wc -l` (на S4 — 76) |
-| `ignore` | `AGENTS.md:53`: `out/ backup/ *.ppu *.o *.exe *.log *.lps` под `.gitignore` | в `.gitignore` нет `*.o` |
-| `path` | `AGENTS.md:35`, `:122`, `README.md:191-192`: доки лежат в `doc/` | фактические файлы — в `doc/v1/` |
+| `count` | `AGENTS.md:67`: «39 отслеживаемых файлов» | `git ls-files | wc -l` (число меняется) |
+| `ignore` | `AGENTS.md:66`: `out/ backup/ *.ppu *.o *.exe *.log *.lps` под `.gitignore` | в `.gitignore` нет `*.o` |
+| `path` | `AGENTS.md`/`README.md`: ссылки на `doc/*` — файл должен существовать | после переноса — `doc/v1/...`; актуальный список — вывод скрипта |
 | `unit` | `doc/units.md:11`: `GLV.Log.AsyncFileEngine` | в `lib/src` такого юнита нет |
-| `format` | `AGENTS.md:80-82`: три формата строк | реализация в `lib/src` (проверка по литералам) |
-| `contract` | `AGENTS.md:83`: `AsStr` иначе `UNKNOWN` | в `GlvLogTypes.pas` ветка закомментирована |
-| `test-requires` | `AGENTS.md:48`: `Test.lpi` требует `glv_log_contract` | фактически ещё и `glv_log_def_engine` |
-| `env` | `AGENTS.md:40-42`: FPC в `PATH` нет → только Lazarus | S1 `probe.sh`: два FPC вне `PATH`, сборка возможна |
+| `format` | `AGENTS.md:96-98`: три формата строк | реализация в `lib/src` (проверка по литералам) |
+| `contract` | `AGENTS.md:99`: `AsStr` иначе `UNKNOWN` | в `GlvLogTypes.pas` ветка закомментирована |
+| `test-requires` | `AGENTS.md:61`: `Test.lpi` требует `glv_log_contract` | фактически ещё и `glv_log_def_engine` |
+| `env` | `AGENTS.md:53`: FPC в `PATH` нет → только Lazarus | S1 `probe.sh`: два FPC вне `PATH`, сборка возможна |
 
 `format` проверяет только наличие формата в коде, а не в тестах: у
 `TConsole` теста нет, и это отдельная находка (`TEST`/`GAP`), а не дрифт
@@ -74,7 +74,7 @@
    обновляются тесты/пакеты, затем код, затем все доки в том же изменении.
 4. После правки снова запустить `doc-facts.sh`; остаток — в бэклог S5,
    а не «зелёный» отчёт.
-5. В `doc/` сохранять CRLF; `.pi/skills/**` — LF (правило плана).
+5. В `doc/` сохранять CRLF; файлы скиллов — LF.
 
 ## 6. Не дублировать
 

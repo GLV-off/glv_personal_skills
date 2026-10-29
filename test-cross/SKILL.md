@@ -10,6 +10,10 @@ description: Кросс-тесты GLV Log на FPC/Lazarus через внеш�
 конвенцию и даёт воспроизводимый прогон: **сборка → запуск → счётчики →
 честный статус**. Он не «чинит» библиотеку под зелёный тест.
 
+> `$S` — каталог этого скилла (pi сообщает его путь; обычно
+> `~/.pi/agent/skills/test-cross`). Команды ниже выполняются из корня
+> репозитория GLV Log — подставьте `$S` перед запуском.
+
 ## Жёсткие правила
 
 1. **Сначала харнесс, потом тест.** API брать из
@@ -56,8 +60,8 @@ FPUnit-раннер при `-dFPUNIT` (пакет `glvtestcross.lpk:28-30`).
 ## Шаг 3 — скелет (в stdout, без записи)
 
 ```bash
-bash .pi/skills/test-cross/scripts/test-skeleton.sh Unit TMyTest
-bash .pi/skills/test-cross/scripts/test-skeleton.sh Int TMyTest
+bash "$S/scripts/test-skeleton.sh" Unit TMyTest
+bash "$S/scripts/test-skeleton.sh" Int TMyTest
 ```
 
 Вывод — блок `TMyTest = class(TCrossTestCase)` + `initialization` с
@@ -71,17 +75,17 @@ bash .pi/skills/test-cross/scripts/test-skeleton.sh Int TMyTest
 Основной путь (собирает через S1 и запускает свежий `.exe`):
 
 ```bash
-bash .pi/skills/test-cross/scripts/run-tests.sh Unit
-bash .pi/skills/test-cross/scripts/run-tests.sh Int
-bash .pi/skills/test-cross/scripts/run-tests.sh all
+bash "$S/scripts/run-tests.sh" Unit
+bash "$S/scripts/run-tests.sh" Int
+bash "$S/scripts/run-tests.sh" all
 ```
 
 Полезные флаги: `--no-build` (только запуск), `--allow-stale` (разрешить
 старый `.exe`), `TEST_TIMEOUT=60`. Явная сборка + запуск:
 
 ```bash
-bash .pi/skills/pascal-build-probe/scripts/build.sh tests tests-int
-bash .pi/skills/test-cross/scripts/run-tests.sh Unit --no-build
+bash "$S/../pascal-build-probe/scripts/build.sh" tests tests-int
+bash "$S/scripts/run-tests.sh" Unit --no-build
 ```
 
 `run-tests.sh` печатает `BUILD|...`, затем
@@ -122,16 +126,16 @@ bash .pi/skills/test-cross/scripts/run-tests.sh Unit --no-build
 
 ## 10 проверок (каждая — готовая команда)
 
-1. **Unit-скелет:** `bash .pi/skills/test-cross/scripts/test-skeleton.sh Unit TFooTest` — exit 0, в выводе `test/src/LogTestUnit.pas` и `CrossRegTest(TFooTest, 'Unit')`.
-2. **Int-скелет:** `bash .pi/skills/test-cross/scripts/test-skeleton.sh Int TFooTest` — exit 0, в выводе `test/src/LogTestInt.pas`, `TEnv.TestFile` и `'Int'`; вывод отличается от Unit.
-3. **Отказы скелета:** `bash .pi/skills/test-cross/scripts/test-skeleton.sh Foo TFooTest` → exit 2; `bash .pi/skills/test-cross/scripts/test-skeleton.sh` → exit 64.
-4. **Синтаксис скриптов:** `bash -n .pi/skills/test-cross/scripts/*.sh` — без ошибок.
-5. **Сборка тестов через S1:** `bash .pi/skills/pascal-build-probe/scripts/build.sh tests tests-int` — `RESULT|tests|ok` и `RESULT|tests-int|ok`, exit 0.
-6. **Unit-прогон:** `bash .pi/skills/test-cross/scripts/run-tests.sh Unit` — `RESULT|test-unit|pass|run=4`, exit 0.
-7. **Int-прогон:** `bash .pi/skills/test-cross/scripts/run-tests.sh Int` — на текущем коде `RESULT|test-int|fail|...failures=1`, в логе `TestPrimitiveFileLogUnicode`; это воспроизводимый известный fail, не pass.
-8. **Старый exe:** `bash .pi/skills/test-cross/scripts/run-tests.sh Unit --no-build` после правки `.pas` — `WARN|stale-exe`/`skipped`, а не зелёный прогон.
+1. **Unit-скелет:** `bash "$S/scripts/test-skeleton.sh" Unit TFooTest` — exit 0, в выводе `test/src/LogTestUnit.pas` и `CrossRegTest(TFooTest, 'Unit')`.
+2. **Int-скелет:** `bash "$S/scripts/test-skeleton.sh" Int TFooTest` — exit 0, в выводе `test/src/LogTestInt.pas`, `TEnv.TestFile` и `'Int'`; вывод отличается от Unit.
+3. **Отказы скелета:** `bash "$S/scripts/test-skeleton.sh" Foo TFooTest` → exit 2; `bash "$S/scripts/test-skeleton.sh"` → exit 64.
+4. **Синтаксис скриптов:** `bash -n $S/scripts/*.sh` — без ошибок.
+5. **Сборка тестов через S1:** `bash "$S/../pascal-build-probe/scripts/build.sh" tests tests-int` — `RESULT|tests|ok` и `RESULT|tests-int|ok`, exit 0.
+6. **Unit-прогон:** `bash "$S/scripts/run-tests.sh" Unit` — `RESULT|test-unit|pass|run=4`, exit 0.
+7. **Int-прогон:** `bash "$S/scripts/run-tests.sh" Int` — на текущем коде `RESULT|test-int|fail|...failures=1`, в логе `TestPrimitiveFileLogUnicode`; это воспроизводимый известный fail, не pass.
+8. **Старый exe:** `bash "$S/scripts/run-tests.sh" Unit --no-build` после правки `.pas` — `WARN|stale-exe`/`skipped`, а не зелёный прогон.
 9. **Регистрация:** `grep -RIn "CrossRegTest" test/src` — три `'Unit'` в `LogTestUnit.pas:114-116` и два `'Int'` в `LogTestInt.pas:172-173`.
-10. **Без компилятора:** `FPC=/nonexistent LAZBUILD=off bash .pi/skills/test-cross/scripts/run-tests.sh Unit` — `skipped|build-not-ok`, exit не 0; трактовать как «не проверено», не как pass.
+10. **Без компилятора:** `FPC=/nonexistent LAZBUILD=off bash "$S/scripts/run-tests.sh" Unit` — `skipped|build-not-ok`, exit не 0; трактовать как «не проверено», не как pass.
 
 ## Не дублировать
 

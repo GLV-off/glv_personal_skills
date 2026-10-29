@@ -139,18 +139,11 @@ ASD-STE100 — нижняя граница: 20 слов максимум, акт
 
 ## Обслуживание
 
-Две копии: `.pi/skills/caveman/SKILL.md` и `.opencode/skills/caveman/SKILL.md`.
-Тело после frontmatter обязано совпадать; различается только frontmatter.
-Проверка рассогласования (из корня воркспейса):
-
-```bash
-body() { awk 'BEGIN{d=0} /^---$/{d++; next} d>=2' "$1"; }
-diff -u <(body .pi/skills/caveman/SKILL.md) \
-        <(body .opencode/skills/caveman/SKILL.md) && echo "тела совпадают"
-```
-
-Правится тело — правится в двух файлах одновременно, затем прогоняется проверка.
+Одна копия: `~/.pi/agent/skills/caveman/SKILL.md` (этот файл).
+Проектные дубликаты (`.pi/skills/caveman`, `.opencode/skills/caveman`) не
+нужны: при совпадении имён pi оставляет первый найденный скилл, и правка
+дубликата может остаться мёртвой.
 
 Источник идеи: `https://github.com/JuliusBrussee/caveman` (Apache-2.0, Copyright 2026
-Julius Brussee). Эта версия — адаптация под воркспейс `C:\Dev\Work`: русский язык,
-без hooks, с правилами безопасности и артефактов воркспейса.
+Julius Brussee). Эта версия — адаптация под pi (глобальный скилл, любой
+проект): русский язык, без hooks, с правилами безопасности и артефактов.

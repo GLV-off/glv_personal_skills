@@ -9,6 +9,10 @@ description: Детект Pascal-тулчейна и проверка сборк
 протокол: **детект → сборка → лог → честный результат**. Скилл ничего не
 исправляет в коде и пакетах; найденная поломка — это факт для отчёта/бэклога.
 
+> `$S` — каталог этого скилла (pi сообщает его путь; обычно
+> `~/.pi/agent/skills/pascal-build-probe`). Команды ниже выполняются из
+> корня репозитория GLV Log — подставьте `$S` перед запуском.
+
 ## Жёсткие правила
 
 1. **Сначала probe, потом build.** Не собирать «наугад» найденным в `PATH`
@@ -32,7 +36,7 @@ description: Детект Pascal-тулчейна и проверка сборк
 ## Шаг 1 — детект тулчейна
 
 ```bash
-bash .pi/skills/pascal-build-probe/scripts/probe.sh
+bash "$S/scripts/probe.sh"
 ```
 
 Скрипт ищет компиляторы в порядке приоритета: `PATH` → `$PP` → `$FPCDIR` /
@@ -77,10 +81,10 @@ SUMMARY|fpc=2|lazbuild=1|delphi=0|tests-dep=1
 ## Шаг 2 — сборка
 
 ```bash
-bash .pi/skills/pascal-build-probe/scripts/build.sh <target> [<target> ...]
+bash "$S/scripts/build.sh" <target> [<target> ...]
 ```
 
-Цели: `lib-v2`, `lib-v1-ct`, `tests`, `tests-int`, `demo`, `all`.
+Цели: `lib-v2`, `lib-v1-ct`, `tests`, `tests-int`, `demo`, `demo-builder`, `all`.
 Без аргументов — список целей и код `64`; неизвестная цель — ошибка, не
 молчаливый успех. Переменные: `BUILD_MODE=Debug|Release`,
 `FPC=<path>` (переопределить компилятор), `LAZBUILD=<path>`,

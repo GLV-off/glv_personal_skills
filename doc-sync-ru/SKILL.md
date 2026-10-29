@@ -10,6 +10,10 @@ description: Сверка русскоязычной документации GL
 под текст». По умолчанию правится **текст**; код — только отдельным явным
 решением.
 
+> `$S` — каталог этого скилла (pi сообщает его путь; обычно
+> `~/.pi/agent/skills/doc-sync-ru`). Команды ниже выполняются из корня
+> репозитория GLV Log — подставьте `$S` перед запуском.
+
 ## Жёсткие правила
 
 1. **Сначала прочитать, потом сверять.** `AGENTS.md`, `README.md`,
@@ -31,7 +35,7 @@ description: Сверка русскоязычной документации GL
    `*.log`, автоген-`.pas` рядом с пакетами — не доки и не код для правки.
 9. **Планы — не обещания.** `doc/units.md` и `doc/v2/*` могут описывать
    будущее; отсутствие будущего юнита — не дрифт, если это заявлено планом.
-10. **Формат файлов.** `doc/**` — CRLF (как в репо), `.pi/skills/**` — LF;
+10. **Формат файлов.** `doc/**` — CRLF (как в репо), файлы скиллов — LF;
     язык доков — русский, команды/имена — как есть.
 11. **Никаких `jq`/`xmllint`/сети.** Только `bash`, `git`, `grep`, `sed`,
     `awk`, `find`.
@@ -42,8 +46,8 @@ description: Сверка русскоязычной документации GL
 что проверяется машинно → что только руками». Затем:
 
 ```bash
-cd C:/dev/glv/pas_Log
-bash .pi/skills/doc-sync-ru/scripts/doc-facts.sh .
+cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)"   # корень GLV Log
+bash "$S/scripts/doc-facts.sh" .
 echo "exit=$?"
 ```
 
@@ -72,12 +76,7 @@ SUMMARY|checks=10|drifts=N
 | `test-requires` | список пакетов `.lpi` в доке неполный | обновить AGENTS по фактическим `RequiredPackages` |
 | `env` | утверждение про компилятор/`PATH` | сверить с `probe.sh`; не выдавать «нет компилятора» за факт |
 
-Текущий снимок S4 (2026-10-28): 10 проверок, **11 дрифтов**, среди них
-четыре обязательных — `39 → 76` tracked-файлов, `AsyncFileEngine`,
-`Test.lpi` requires и FPC вне `PATH`. Остальные — `*.o`, устаревшие пути
-`doc/unit_uses_tree_ru.md`/`doc/undocumented_units_checklist_ru.md` (лежат в
-`doc/v1/`), закомментированный `UNKNOWN` в `AsStr`. Это не «всё
-актуально»; не пересказывайте иначе.
+Текущий снимок S4 (2026-10-28): на первом прогоне было 10 проверок и 11 дрифтов; после параллельной правки путей в AGENTS/README повторный прогон даёт 6: `39` против фактического `git ls-files`, `*.o`, `AsyncFileEngine`, `AsStr` UNKNOWN, `Test.lpi` requires и FPC вне `PATH`. Число не константа — перепроверяйте `doc-facts.sh`, не пересказывайте старый снимок.
 
 ## Шаг 3 — решение по каждому дрифту
 
@@ -103,7 +102,7 @@ SUMMARY|checks=10|drifts=N
 5. Повторный прогон:
 
 ```bash
-bash .pi/skills/doc-sync-ru/scripts/doc-facts.sh .
+bash "$S/scripts/doc-facts.sh" .
 git diff --check
 ```
 
@@ -118,15 +117,15 @@ git diff --check
 
 ## 10 проверок (готовые команды)
 
-1. **Полный прогон:** `bash .pi/skills/doc-sync-ru/scripts/doc-facts.sh .` — exit 2 и `SUMMARY|checks=10|drifts=11` на текущем коде.
-2. **Количество:** `bash .pi/skills/doc-sync-ru/scripts/doc-facts.sh . | grep '^DOC|AGENTS.md:54|count'` — `39 tracked files` против фактического `git ls-files`.
-3. **Юнит:** `bash .pi/skills/doc-sync-ru/scripts/doc-facts.sh . | grep '^DOC|doc/units.md:11|unit'` — `GLV.Log.AsyncFileEngine` отсутствует.
-4. **Test.lpi:** `bash .pi/skills/doc-sync-ru/scripts/doc-facts.sh . | grep '^DOC|AGENTS.md:48|test-requires'` — в доке только `glv_log_contract`, фактически ещё `glv_log_def_engine`.
-5. **Окружение:** `bash .pi/skills/doc-sync-ru/scripts/doc-facts.sh . | grep '^DOC|AGENTS.md:40|env'` — `probe: fpc=2 outside PATH`.
-6. **AsStr:** `bash .pi/skills/doc-sync-ru/scripts/doc-facts.sh . | grep '^DOC|AGENTS.md:83|contract'` — `UNKNOWN` только в комментарии.
-7. **Согласованность счётчика:** `bash .pi/skills/doc-sync-ru/scripts/doc-facts.sh . | grep -c '^DOC|'` равно `drifts` из `SUMMARY`.
-8. **Нет ложных артефактов:** `bash .pi/skills/doc-sync-ru/scripts/doc-facts.sh . | grep '|path|' | grep -E '(^|/)(out|backup)/|\.lps$'` — пусто.
-9. **Синтаксис:** `bash -n .pi/skills/doc-sync-ru/scripts/doc-facts.sh` — без ошибок.
+1. **Полный прогон:** `bash "$S/scripts/doc-facts.sh" .` — exit 2 и `SUMMARY|checks=10|drifts=6` на текущем коде.
+2. **Количество:** `bash "$S/scripts/doc-facts.sh" . | grep '^DOC|AGENTS.md:67|count'` — `39 tracked files` против фактического `git ls-files`.
+3. **Юнит:** `bash "$S/scripts/doc-facts.sh" . | grep '^DOC|doc/units.md:11|unit'` — `GLV.Log.AsyncFileEngine` отсутствует.
+4. **Test.lpi:** `bash "$S/scripts/doc-facts.sh" . | grep '^DOC|AGENTS.md:61|test-requires'` — в доке только `glv_log_contract`, фактически ещё `glv_log_def_engine`.
+5. **Окружение:** `bash "$S/scripts/doc-facts.sh" . | grep '^DOC|AGENTS.md:53|env'` — `probe: fpc=2 outside PATH`.
+6. **AsStr:** `bash "$S/scripts/doc-facts.sh" . | grep '^DOC|AGENTS.md:99|contract'` — `UNKNOWN` только в комментарии.
+7. **Согласованность счётчика:** `bash "$S/scripts/doc-facts.sh" . | grep -c '^DOC|'` равно `drifts` из `SUMMARY`.
+8. **Нет ложных артефактов:** `bash "$S/scripts/doc-facts.sh" . | grep '|path|' | grep -E '(^|/)(out|backup)/|\.lps$'` — пусто.
+9. **Синтаксис:** `bash -n "$S/scripts/doc-facts.sh"` — без ошибок.
 10. **Чистота диффа:** `git status --porcelain` — только доки/скилл/план, без `out/`, `*.exe`, `*.ppu`, `*.lps`.
 
 ## Не дублировать

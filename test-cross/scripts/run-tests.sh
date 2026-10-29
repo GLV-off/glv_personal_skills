@@ -41,6 +41,11 @@ for a in "$@"; do
   esac
 done
 [ -z "$TARGETS" ] && { usage >&2; exit 64; }
+# Скилл привязан к GLV Log: без test/pkg/lz запускать нечего.
+if [ ! -d test/pkg/lz ]; then
+  echo "RESULT|error|fail|не репозиторий GLV Log (нет test/pkg/lz): $ROOT"
+  exit 2
+fi
 
 mtime() { stat -c %Y "$1" 2>/dev/null || stat -f %m "$1"; }
 

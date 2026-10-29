@@ -29,7 +29,7 @@ val() { awk -F'"' -v tag="$1" 'index($0,tag){print $2; exit}' "$2"; } # val '<Na
 base_of() { printf '%s' "${1##*[\\/]}"; }
 
 # --- 1. пакеты и их состав ----------------------------------------------------
-PKGS="$(find lib/pkg -type f \( -name '*.lpk' -o -name '*.ctpkg' \) 2>/dev/null | sort)"
+PKGS="$(find lib/pkg -type f \( -name '*.lpk' -o -name '*.ctpkg' \) ! -path '*/backup/*' 2>/dev/null | sort)"
 [ -n "$PKGS" ] || { echo "SUMMARY|error|no-packages"; exit 2; }
 PKG_N=0; UNIT_N=0
 for p in $PKGS; do

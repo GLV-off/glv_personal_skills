@@ -15,7 +15,13 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="${1:-$SCRIPT_DIR/../../../..}"
+# Корень: аргумент -> git-toplevel -> текущий каталог. Скилл может жить
+# и в <repo>/.pi/skills, и в ~/.pi/agent/skills — путь скилла корнем не является.
+ROOT="${1:-}"
+if [ -z "$ROOT" ]; then
+  ROOT="$(git rev-parse --show-toplevel 2>/dev/null | tr -d '\r')"
+  [ -z "$ROOT" ] && ROOT="$(pwd)"
+fi
 
 case "${1:-}" in
   -h|--help)
@@ -35,6 +41,12 @@ ROOT="$(cd "$ROOT" && pwd)" || exit 64
 cd "$ROOT" || exit 64
 if [ ! -f AGENTS.md ]; then
   echo "ERROR|root|AGENTS.md not found: $ROOT"
+  exit 64
+fi
+# Скилл привязан к GLV Log: в чужом репозитории проверки дадут мусорные
+# дрифты (grep по отсутствующим lib/src/*.pas). Лучше явный отказ.
+if [ ! -d lib/src ]; then
+  echo "ERROR|root|not GLV Log (нет lib/src): $ROOT"
   exit 64
 fi
 
@@ -161,6 +173,7 @@ check_env_compiler() {
     return
   fi
   probe="$ROOT/.pi/skills/pascal-build-probe/scripts/probe.sh"
+  [ -f "$probe" ] || probe="$SCRIPT_DIR/../../pascal-build-probe/scripts/probe.sh"
   [ -f "$probe" ] || { printf 'SKIP|compiler|probe-absent\n'; return; }
   out="$(bash "$probe" 2>/dev/null || true)"
   count="$(printf '%s\n' "$out" | sed -n 's/^SUMMARY|fpc=\([0-9][0-9]*\).*/\1/p' | head -1)"

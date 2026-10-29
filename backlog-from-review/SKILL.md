@@ -7,6 +7,11 @@ description: Преобразование уже найденных находо
 Этот скилл **не ищет** дефекты и не правит код. Он берёт готовый отчёт
 `code-recon` (или журнал S1–S4), проверяет доказательства и превращает их в
 строки `doc/backlog_ru.md` с ID, статусом и критерием приёмки.
+
+> `$S` — каталог этого скилла (pi сообщает его путь; обычно
+> `~/.pi/agent/skills/backlog-from-review`). Команды ниже выполняются из
+> корня целевого репозитория — подставьте `$S` перед запуском.
+
 ## Жёсткие правила
 1. **Сначала `code-recon`.** Нет отчёта/находок — нет бэклога. Не выдавайте
    «улучшить модуль» за находку.
@@ -26,7 +31,7 @@ description: Преобразование уже найденных находо
    задача с отдельным тестом; здесь только `doc/backlog_ru.md`.
 9. **Никаких `jq`/`xmllint`/сети.** Только `bash`, `awk`, `sed`, `grep`,
    `git`; скрипт пишет только во временный каталог, а с `--write` — в бэклог.
-10. **Формат.** `doc/**` — CRLF, `.pi/skills/**` — LF; русский язык, пути и
+10. **Формат.** `doc/**` — CRLF, файлы скиллов — LF; русский язык, пути и
     команды — как есть.
 
 ## Фаза 1 — собрать вход
@@ -43,7 +48,7 @@ description: Преобразование уже найденных находо
 ```bash
 sed -n '130,150p' lib/src/GlvLogFiles.pas   # пример: строка async-бага
 git ls-files | wc -l                        # числа из доков
-bash .pi/skills/pascal-package-sync/scripts/pkg-inventory.sh .
+bash "$S/../pascal-package-sync/scripts/pkg-inventory.sh" .
 ```
 
 Что уже закрыто, не открывайте заново. На S5 F8 (3 юнита вне пакетов) закрыт:
@@ -55,7 +60,7 @@ bash .pi/skills/pascal-package-sync/scripts/pkg-inventory.sh .
 Сухой прогон (ничего не пишет):
 
 ```bash
-bash .pi/skills/backlog-from-review/scripts/findings-to-backlog.sh report.md
+bash "$S/scripts/findings-to-backlog.sh" report.md
 ```
 
 Скрипт понимает:
@@ -95,7 +100,7 @@ SUMMARY|findings=2|new=1|dup=1
 
 ```bash
 cp doc/backlog_ru.md /tmp/backlog.before.md
-bash .pi/skills/backlog-from-review/scripts/findings-to-backlog.sh --write report.md
+bash "$S/scripts/findings-to-backlog.sh" --write report.md
 git diff -- doc/backlog_ru.md
 ```
 
@@ -119,15 +124,15 @@ exit `3`, файл не меняется. Для теста можно указ�
 
 ## 10 проверок (готовые команды)
 
-1. **Сухой прогон:** `printf '%s\n' '### BUG' '1. `lib/src/GlvLogFiles.pas:138` — dup' '2. `test/src/TestEnv.pas:1` — new' > /tmp/findings.md && bash .pi/skills/backlog-from-review/scripts/findings-to-backlog.sh /tmp/findings.md` — `RESULT|new=1|dup=1`.
-2. **Запись в копию:** `cp doc/backlog_ru.md /tmp/backlog.md && bash .pi/skills/backlog-from-review/scripts/findings-to-backlog.sh --write --backlog /tmp/backlog.md /tmp/findings.md` — `WROTE`, оригинал не изменён.
+1. **Сухой прогон:** `printf '%s\n' '### BUG' '1. `lib/src/GlvLogFiles.pas:138` — dup' '2. `test/src/TestEnv.pas:1` — new' > /tmp/findings.md && bash "$S/scripts/findings-to-backlog.sh" /tmp/findings.md` — `RESULT|new=1|dup=1`.
+2. **Запись в копию:** `cp doc/backlog_ru.md /tmp/backlog.md && bash "$S/scripts/findings-to-backlog.sh" --write --backlog /tmp/backlog.md /tmp/findings.md` — `WROTE`, оригинал не изменён.
 3. **Объём:** `grep -c '^| BL-' doc/backlog_ru.md` — `16`.
 4. **Доказательства:** `grep '^| BL-' doc/backlog_ru.md | grep -v '`[^`]*:[0-9]'` — пусто.
 5. **Статусы:** `grep '^| BL-' doc/backlog_ru.md | grep -Ev '\| (new|in-progress|done|wontfix) \|$'` — пусто.
 6. **Дубли:** `grep -o '`[^`]*:[0-9]*`' doc/backlog_ru.md | sort | uniq -d` — пусто.
 7. **Приоритет:** `awk '/^## next/{f=1;next}/^## later/{f=0}f && /^\| BL-/{n++}END{print n}' doc/backlog_ru.md` — `5`; `awk '/^## next/{f=1;next}/^## later/{f=0}f' doc/backlog_ru.md | grep -c 'API: breaking'` — `0`.
-8. **Синтаксис:** `bash -n .pi/skills/backlog-from-review/scripts/findings-to-backlog.sh` — без ошибок.
-9. **Аргументы:** `bash .pi/skills/backlog-from-review/scripts/findings-to-backlog.sh` — exit `64`; `--help` — exit `0`.
+8. **Синтаксис:** `bash -n "$S/scripts/findings-to-backlog.sh"` — без ошибок.
+9. **Аргументы:** `bash "$S/scripts/findings-to-backlog.sh"` — exit `64`; `--help` — exit `0`.
 10. **Чистота:** `git status --porcelain` — только бэклог/скилл/план, без артефактов сборки.
 
 ## Не дублировать
